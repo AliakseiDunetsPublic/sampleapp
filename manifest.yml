@@ -2,7 +2,7 @@
 applications:
 
 - name: sampleapp
-  memory: 256M
+  memory: 768M
   timeout: 300
   random-route: true
   path: application/target/sampleapp-application.war

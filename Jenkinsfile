@@ -11,29 +11,6 @@ pipeline {
         skipDefaultCheckout()
     }
     stages {
-        stage('Init') {
-            steps {
-                milestone 10
-                library "s4sdk-pipeline-library@${pipelineSdkVersion}"
-                stageInitS4sdkPipeline script: this
-                abortOldBuilds script: this
-            }
-        }
-
-        stage('Build and Test') {
-            steps {
-                milestone 20
-                stageBuild script: this
-            }
-        }        
-
-        stage('Artifact Deployment') {
-            when { expression { commonPipelineEnvironment.configuration.runStage.ARTIFACT_DEPLOYMENT } }
-            steps {
-                milestone 70
-                stageArtifactDeployment script: this
-            }
-        }
 
         stage('Production Deployment') {
             when { expression { commonPipelineEnvironment.configuration.runStage.PRODUCTION_DEPLOYMENT } }
