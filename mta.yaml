@@ -1,0 +1,11 @@
+_schema-version: 2.1.0
+ID: com.sap.piper.java.hello.world
+version: 1.0.0
+description: A Hello World sample application
+provider: SAP Sample generator
+modules:
+  - name: piper.java.hello.world
+    memory: 256M
+    instances: 1
+    path: .
+
