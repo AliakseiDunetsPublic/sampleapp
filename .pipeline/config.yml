@@ -1,12 +1,32 @@
 general:
 steps:
-  mtaBuild:
-    buildTarget: 'CF'
-  cloudFoundryDeploy:
-    deployTool: 'mtaDeployPlugin'
-    deployType: 'standard'
-    cloudFoundry:
-      org: 'zybpaasabap'
-      space: 'DEV'
-      credentialsId: 'CF_CREDENTIALSID'
+#  mtaBuild:
+#    buildTarget: 'CF'
+#  cloudFoundryDeploy:
+#    deployTool: 'mtaDeployPlugin'
+#    deployType: 'standard'
+#    cloudFoundry:
+#      org: 'zybpaasabap'
+#      space: 'DEV'
+#      credentialsId: 'CF_CREDENTIALSID'
+
+### Stage-specific configuration
+stages:
+#  backendIntegrationTests:
+#    credentials:
+#      - alias: 'mySystemAlias'
+#        credentialId: 'mySystemCredentialsId'
+
+#  s4SdkQualityChecks:
+#    nonErpDestinations:
+#      - 'myCustomDestination'
+
+  productionDeployment:
+    cfTargets:
+      - org: 'zybpaasabap'
+        space: 'DEV'
+        apiEndpoint: 'https://api.cf.eu10.hana.ondemand.com'
+        appName: 'sampleapp'
+        manifest: 'manifest.yml'
+        credentialsId: 'CF_CREDENTIALSID'
 

@@ -1,24 +1,73 @@
-#!/usr/bin/env groovy 
+#!/usr/bin/env groovy
 
-/*
- * This file bootstraps the codified Continuous Delivery pipeline for extensions of SAP solutions such as SAP S/4HANA.
- * The pipeline helps you to deliver software changes quickly and in a reliable manner.
- * A suitable Jenkins instance is required to run the pipeline.
- * The Jenkins can easily be bootstraped using the life-cycle script located inside the 'cx-server' directory.
- *
- * More information on getting started with Continuous Delivery can be found in the following places:
- *   - GitHub repository: https://github.com/SAP/cloud-s4-sdk-pipeline
- *   - Blog Post: https://blogs.sap.com/2017/09/20/continuous-integration-and-delivery
- */
+final def pipelineSdkVersion = 'master'
 
-/*
- * Set pipelineVersion to a fixed released version (e.g. "v15") when running in a productive environment.
- * To find out about available versions and release notes, visit: https://github.com/SAP/cloud-s4-sdk-pipeline/releases
- */
-String pipelineVersion = "master"
+pipeline {
+    agent any
+    options {
+        timeout(time: 120, unit: 'MINUTES')
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+        skipDefaultCheckout()
+    }
+    stages {
+        stage('Init') {
+            steps {
+                milestone 10
+                library "s4sdk-pipeline-library@${pipelineSdkVersion}"
+                stageInitS4sdkPipeline script: this
+                abortOldBuilds script: this
+            }
+        }
 
-node {
-    deleteDir()
-    sh "git clone --depth 1 https://github.com/SAP/cloud-s4-sdk-pipeline.git -b ${pipelineVersion} pipelines"
-    load './pipelines/s4sdk-pipeline.groovy'
+        stage('Build and Test') {
+            steps {
+                milestone 20
+                stageBuild script: this
+            }
+        }        
+
+        stage('Artifact Deployment') {
+            when { expression { commonPipelineEnvironment.configuration.runStage.ARTIFACT_DEPLOYMENT } }
+            steps {
+                milestone 70
+                stageArtifactDeployment script: this
+            }
+        }
+
+        stage('Production Deployment') {
+            when { expression { commonPipelineEnvironment.configuration.runStage.PRODUCTION_DEPLOYMENT } }
+            //milestone 80 is set in stageProductionDeployment
+            steps { stageProductionDeployment script: this }
+        }
+
+    }
+    post {
+        always {
+            script {
+                debugReportArchive script: this
+                if (commonPipelineEnvironment?.configuration?.runStage?.SEND_NOTIFICATION) {
+                    postActionSendNotification script: this
+                }
+                postActionCleanupStashesLocks script: this
+                sendAnalytics script: this
+
+                if (commonPipelineEnvironment?.configuration?.runStage?.POST_PIPELINE_HOOK) {
+                    stage('Post Pipeline Hook') {
+                        stagePostPipelineHook script: this
+                    }
+                }
+            }
+        }
+        success {
+            script {
+                if (commonPipelineEnvironment?.configuration?.runStage?.ARCHIVE_REPORT) {
+                    postActionArchiveReport script: this
+                }
+            }
+        }
+        failure {
+            deleteDir()
+        }
+    }
 }
