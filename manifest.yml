@@ -1,0 +1,6 @@
+---
+applications:
+- name: sapcpcfhw
+  path: .
+  buildpack: java_buildpack
+  memory: 256M
