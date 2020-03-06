@@ -12,6 +12,15 @@ pipeline {
     }
     stages {
 
+	stage('Init') {
+            steps {
+                milestone 10
+                library "s4sdk-pipeline-library@${pipelineSdkVersion}"
+                stageInitS4sdkPipeline script: this
+                abortOldBuilds script: this
+            }
+        }
+
         stage('Production Deployment') {
             when { expression { commonPipelineEnvironment.configuration.runStage.PRODUCTION_DEPLOYMENT } }
             //milestone 80 is set in stageProductionDeployment
