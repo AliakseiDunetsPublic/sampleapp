@@ -21,6 +21,13 @@ pipeline {
             }
         }
 
+	stage('Build and Test') {
+            steps {
+                milestone 20
+                stageBuild script: this
+            }
+        }
+
         stage('Production Deployment') {
             when { expression { commonPipelineEnvironment.configuration.runStage.PRODUCTION_DEPLOYMENT } }
             //milestone 80 is set in stageProductionDeployment
